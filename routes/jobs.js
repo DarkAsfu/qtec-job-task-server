@@ -26,9 +26,18 @@ router.get('/:id', async (req, res) => {
 
 // POST /api/jobs - Create a job (Admin)
 router.post('/', async (req, res) => {
-  const { title, company, location, category, description, jobType, isFeatured, companyLogo } = req.body;
+  let { title, company, location, category, description, jobType, isFeatured, companyLogo, responsibilities } = req.body;
   if (!title || !company || !location || !category || !description || !jobType) {
     return res.status(400).json({ error: 'All fields are required' });
+  }
+  // Handle responsibilities: accept array or string (split by line)
+  let responsibilitiesArr = [];
+  if (responsibilities) {
+    if (Array.isArray(responsibilities)) {
+      responsibilitiesArr = responsibilities.map(r => r.trim()).filter(r => r.length > 0);
+    } else if (typeof responsibilities === 'string') {
+      responsibilitiesArr = responsibilities.split('\n').map(r => r.trim()).filter(r => r.length > 0);
+    }
   }
   try {
     const job = new Job({
@@ -39,11 +48,12 @@ router.post('/', async (req, res) => {
       description,
       jobType,
       isFeatured: !!isFeatured,
-      companyLogo
+      companyLogo,
+      responsibilities: responsibilitiesArr
     });
     await job.save();
     // Fetch the saved job to ensure all fields (including defaults, virtuals, etc.) are present
-    const savedJob = await Job.findById(job._id).select('title company location category description jobType isFeatured companyLogo created_at');
+    const savedJob = await Job.findById(job._id).select('title company location category description jobType isFeatured companyLogo responsibilities created_at');
     res.status(201).json(savedJob);
   } catch (err) {
     res.status(500).json({ error: 'Server error' });
