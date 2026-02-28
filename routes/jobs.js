@@ -4,12 +4,25 @@ const router = express.Router();
 const Job = require('../models/Job');
 
 // GET /api/jobs - List all jobs
-router.get('/', async (req, res) => {
+
+// GET /api/jobs?search=...&location=...
+router.get("/", async (req, res) => {
   try {
-    const jobs = await Job.find();
+    const { search = "", location = "" } = req.query;
+    const query = {};
+    if (search) {
+      query.$or = [
+        { title: { $regex: search, $options: "i" } },
+        { company: { $regex: search, $options: "i" } }
+      ];
+    }
+    if (location) {
+      query.location = { $regex: location, $options: "i" };
+    }
+    const jobs = await Job.find(query).sort({ createdAt: -1 });
     res.json(jobs);
   } catch (err) {
-    res.status(500).json({ error: 'Server error' });
+    res.status(500).json({ error: err.message });
   }
 });
 
