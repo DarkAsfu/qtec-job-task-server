@@ -1,5 +1,10 @@
 
+
 # Job Board Backend
+
+## Project Setup
+
+GitHub Repository: [https://github.com/DarkAsfu/qtec-job-task-server](https://github.com/DarkAsfu/qtec-job-task-server)
 
 A Node.js + Express.js backend for a job board with MongoDB.
 
@@ -43,5 +48,5 @@ A Node.js + Express.js backend for a job board with MongoDB.
 - Admin endpoints require JWT authentication. Use the token returned from `/api/admin/login` in the `Authorization: Bearer <token>` header for protected routes.
 
 ## Notes
-- Only users with role `admin` can register/login as admin.
+- By default all new register user will be admin.
 - For production, secure admin endpoints, use HTTPS, and validate inputs further.
