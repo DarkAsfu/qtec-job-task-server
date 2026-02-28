@@ -4,8 +4,7 @@ const jwt = require('jsonwebtoken');
 const Admin = require('../models/Admin');
 const router = express.Router();
 
-// Register admin
-// Register admin
+
 router.post('/register', async (req, res) => {
   const { name, email, username, password } = req.body;
   if (!name || !email || !username || !password) {
@@ -36,11 +35,12 @@ router.post('/login', async (req, res) => {
     if (!admin) return res.status(401).json({ error: 'Invalid credentials' });
     const match = await bcrypt.compare(password, admin.password);
     if (!match) return res.status(401).json({ error: 'Invalid credentials' });
-    const token = jwt.sign({ id: admin._id, username: admin.username }, process.env.JWT_SECRET || 'secret', { expiresIn: '1d' });
+    const token = jwt.sign({ id: admin._id, username: admin.username, role: admin.role }, process.env.JWT_SECRET || 'secret', { expiresIn: '1d' });
     res.json({
       token,
       name: admin.name,
-      email: admin.email
+      email: admin.email,
+      role: admin.role
     });
   } catch (err) {
     res.status(500).json({ error: 'Server error' });

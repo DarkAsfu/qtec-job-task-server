@@ -39,4 +39,40 @@ router.post('/', async (req, res) => {
   }
 });
 
+
+
+// JWT admin role middleware
+const jwt = require('jsonwebtoken');
+function adminOnly(req, res, next) {
+  const authHeader = req.headers['authorization'];
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return res.status(401).json({ error: 'Authorization header missing or malformed' });
+  }
+  const token = authHeader.split(' ')[1];
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'secret');
+    if (decoded.role === 'admin') {
+      req.admin = decoded;
+      return next();
+    } else {
+      return res.status(403).json({ error: 'Forbidden: Admins only' });
+    }
+  } catch (err) {
+    return res.status(401).json({ error: 'Invalid or expired token' });
+  }
+}
+
+// GET /api/applications - Admin: Get all applications with job details
+router.get('/', adminOnly, async (req, res) => {
+  try {
+    const applications = await Application.find().populate({
+      path: 'job_id',
+      select: 'title company location jobType category',
+    }).sort({ createdAt: -1 });
+    res.json(applications);
+  } catch (err) {
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
 module.exports = router;
